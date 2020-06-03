@@ -11,6 +11,7 @@
 #include "common/singleton/const_singleton.h"
 
 #include "absl/strings/match.h"
+#include "envoy/http/header_map.h"
 
 namespace Envoy {
 namespace Http {
@@ -26,22 +27,22 @@ void validateCapacity(uint64_t new_capacity) {
                  "Trying to allocate overly large headers.");
 }
 
-absl::string_view get_str_view(const VariantHeader& buffer) {
+absl::string_view getStrView(const VariantHeader& buffer) {
   return absl::get<absl::string_view>(buffer);
 }
 
-InlineHeaderVector& get_in_vec(VariantHeader& buffer) {
+InlineHeaderVector& getInVec(VariantHeader& buffer) {
   return absl::get<InlineHeaderVector>(buffer);
 }
 
-const InlineHeaderVector& get_in_vec(const VariantHeader& buffer) {
+const InlineHeaderVector& getInVec(const VariantHeader& buffer) {
   return absl::get<InlineHeaderVector>(buffer);
 }
 } // namespace
 
 // Initialize as a Type::Inline
 HeaderString::HeaderString() : buffer_(InlineHeaderVector()) {
-  ASSERT((get_in_vec(buffer_).capacity()) >= MaxIntegerLength);
+  ASSERT((getInVec(buffer_).capacity()) >= MaxIntegerLength);
   ASSERT(valid());
 }
 
@@ -72,19 +73,19 @@ void HeaderString::append(const char* data, uint32_t data_size) {
   case Type::Reference: {
     // Rather than be too clever and optimize this uncommon case, we switch to
     // Inline mode and copy.
-    const absl::string_view prev = get_str_view(buffer_);
+    const absl::string_view prev = getStrView(buffer_);
     buffer_ = InlineHeaderVector();
     // Assigning new_capacity to avoid resizing when appending the new data
-    get_in_vec(buffer_).reserve(new_capacity);
-    get_in_vec(buffer_).assign(prev.begin(), prev.end());
+    getInVec(buffer_).reserve(new_capacity);
+    getInVec(buffer_).assign(prev.begin(), prev.end());
     break;
   }
   case Type::Inline: {
-    get_in_vec(buffer_).reserve(new_capacity);
+    getInVec(buffer_).reserve(new_capacity);
     break;
   }
   }
-  get_in_vec(buffer_).insert(get_in_vec(buffer_).end(), data, data + data_size);
+  getInVec(buffer_).insert(getInVec(buffer_).end(), data, data + data_size);
 }
 
 void HeaderString::rtrim() {
@@ -92,21 +93,21 @@ void HeaderString::rtrim() {
   absl::string_view original = getStringView();
   absl::string_view rtrimmed = StringUtil::rtrim(original);
   if (original.size() != rtrimmed.size()) {
-    get_in_vec(buffer_).resize(rtrimmed.size());
+    getInVec(buffer_).resize(rtrimmed.size());
   }
 }
 
 absl::string_view HeaderString::getStringView() const {
   if (type() == Type::Reference) {
-    return get_str_view(buffer_);
+    return getStrView(buffer_);
   }
   ASSERT(type() == Type::Inline);
-  return {get_in_vec(buffer_).data(), get_in_vec(buffer_).size()};
+  return {getInVec(buffer_).data(), getInVec(buffer_).size()};
 }
 
 void HeaderString::clear() {
   if (type() == Type::Inline) {
-    get_in_vec(buffer_).clear();
+    getInVec(buffer_).clear();
   }
 }
 
@@ -118,8 +119,8 @@ void HeaderString::setCopy(const char* data, uint32_t size) {
     buffer_ = InlineHeaderVector();
   }
 
-  get_in_vec(buffer_).reserve(size);
-  get_in_vec(buffer_).assign(data, data + size);
+  getInVec(buffer_).reserve(size);
+  getInVec(buffer_).assign(data, data + size);
   ASSERT(valid());
 }
 
@@ -141,8 +142,8 @@ void HeaderString::setInteger(uint64_t value) {
     // Switching from Type::Reference to Type::Inline
     buffer_ = InlineHeaderVector();
   }
-  ASSERT((get_in_vec(buffer_).capacity()) > MaxIntegerLength);
-  get_in_vec(buffer_).assign(inner_buffer, inner_buffer + int_length);
+  ASSERT((getInVec(buffer_).capacity()) > MaxIntegerLength);
+  getInVec(buffer_).assign(inner_buffer, inner_buffer + int_length);
 }
 
 void HeaderString::setReference(absl::string_view ref_value) {
@@ -152,10 +153,10 @@ void HeaderString::setReference(absl::string_view ref_value) {
 
 uint32_t HeaderString::size() const {
   if (type() == Type::Reference) {
-    return get_str_view(buffer_).size();
+    return getStrView(buffer_).size();
   }
   ASSERT(type() == Type::Inline);
-  return get_in_vec(buffer_).size();
+  return getInVec(buffer_).size();
 }
 
 HeaderString::Type HeaderString::type() const {
@@ -194,7 +195,7 @@ void HeaderMapImpl::HeaderEntryImpl::value(const HeaderEntry& header) {
 
 // Registration for RequestHeaderMap
 #define REGISTER_DEFAULT_REQUEST_HEADER(name)                                                      \
-  RegisterCustomInlineHeader<RequestHeaderMap>                                                     \
+  RegisterCustomInlineHeader<CustomInlineHeaderRegistry::Type::RequestHeaders>            \
       default_header_RequestHeaderMap_##name##_registered(Headers::get().name);
 INLINE_REQ_HEADERS(REGISTER_DEFAULT_REQUEST_HEADER)
 INLINE_REQ_RESP_HEADERS(REGISTER_DEFAULT_REQUEST_HEADER)
@@ -202,7 +203,8 @@ INLINE_REQ_RESP_HEADERS(REGISTER_DEFAULT_REQUEST_HEADER)
 template <>
 HeaderMapImpl::StaticLookupTable<RequestHeaderMapImpl, RequestHeaderMap>::StaticLookupTable() {
   // TODO(mattklein123): de-dup.
-  for (const auto& header : CustomInlineHeaderRegistry<InterfaceType>::headers()) {
+  for (const auto& header :
+       CustomInlineHeaderRegistry::headers<RequestHeaderMap::header_map_type>()) {
     add(header.first.get().c_str(), [&header](ImplType& h) -> StaticLookupResponse {
       return {&h.inline_headers_[header.second], &header.first};
     });
@@ -210,16 +212,17 @@ HeaderMapImpl::StaticLookupTable<RequestHeaderMapImpl, RequestHeaderMap>::Static
 
   // Special case where we map a legacy host header to :authority.
   const auto handle =
-      CustomInlineHeaderRegistry<InterfaceType>::getInlineHeader(Headers::get().Host);
+      CustomInlineHeaderRegistry::getInlineHeader<RequestHeaderMap::header_map_type>(
+          Headers::get().Host);
   add(Headers::get().HostLegacy.get().c_str(), [handle](ImplType& h) -> StaticLookupResponse {
-    return {&h.inline_headers_[handle.value().get()->second], &handle.value().get()->first};
+    return {&h.inline_headers_[handle.value().it->second], &handle.value().it->first};
   });
 }
 
 // Registration for ResponseHeaderMap
 #define REGISTER_RESPONSE_HEADER(name)                                                             \
-  RegisterCustomInlineHeader<ResponseHeaderMap> response_header_##name##_registered(               \
-      Headers::get().name);
+  RegisterCustomInlineHeader<CustomInlineHeaderRegistry::Type::ResponseHeaders>           \
+      response_header_##name##_registered(Headers::get().name);
 INLINE_RESP_HEADERS(REGISTER_RESPONSE_HEADER)
 INLINE_REQ_RESP_HEADERS(REGISTER_RESPONSE_HEADER)
 INLINE_RESP_HEADERS_TRAILERS(REGISTER_RESPONSE_HEADER)
@@ -227,7 +230,7 @@ INLINE_RESP_HEADERS_TRAILERS(REGISTER_RESPONSE_HEADER)
 template <>
 HeaderMapImpl::StaticLookupTable<ResponseHeaderMapImpl, ResponseHeaderMap>::StaticLookupTable() {
   // TODO(mattklein123): de-dup.
-  for (const auto& header : CustomInlineHeaderRegistry<InterfaceType>::headers()) {
+  for (const auto& header : CustomInlineHeaderRegistry::headers<ResponseHeaderMap::header_map_type>()) {
     add(header.first.get().c_str(), [&header](ImplType& h) -> StaticLookupResponse {
       return {&h.inline_headers_[header.second], &header.first};
     });
@@ -236,14 +239,14 @@ HeaderMapImpl::StaticLookupTable<ResponseHeaderMapImpl, ResponseHeaderMap>::Stat
 
 // RegistrationForResponseTrailerMap
 #define REGISTER_RESPONSE_TRAILER(name)                                                            \
-  RegisterCustomInlineHeader<ResponseTrailerMap> response_trailer_##name##_registered(             \
+  RegisterCustomInlineHeader<CustomInlineHeaderRegistry::Type::ResponseTrailers> response_trailer_##name##_registered(             \
       Headers::get().name);
 INLINE_RESP_HEADERS_TRAILERS(REGISTER_RESPONSE_TRAILER)
 
 template <>
 HeaderMapImpl::StaticLookupTable<ResponseTrailerMapImpl, ResponseTrailerMap>::StaticLookupTable() {
   // TODO(mattklein123): de-dup.
-  for (const auto& header : CustomInlineHeaderRegistry<InterfaceType>::headers()) {
+  for (const auto& header : CustomInlineHeaderRegistry::headers<ResponseTrailerMap::header_map_type>()) {
     add(header.first.get().c_str(), [&header](ImplType& h) -> StaticLookupResponse {
       return {&h.inline_headers_[header.second], &header.first};
     });
