@@ -22,7 +22,7 @@ public:
     headers_.setHost(host_value);
     return *headers_.Host();
   }
-  RequestHeaderMapImpl headers_;
+  TestRequestHeaderMapImpl headers_;
 };
 
 // Already normalized path don't change.

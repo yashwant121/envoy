@@ -28,7 +28,7 @@ ProcessWide::ProcessWide() : initialization_depth_(process_wide_initialized) {
     // After this call no more statically registered custom headers are allowed.
     // TODO(mattklein123): This call can almost definitely be moved later to allow for custom
     // headers to be registered via CLI and probably even bootstrap.
-    Http::CustomInlineHeaderUtility::finalize();
+    Http::CustomInlineHeaderRegistry::finalize();
 
     // We do not initialize Google gRPC here -- we instead instantiate
     // Grpc::GoogleGrpcContext in MainCommon immediately after instantiating

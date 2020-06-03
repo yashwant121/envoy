@@ -5,13 +5,14 @@
 #include <memory>
 #include <string>
 
+#include "envoy/http/header_map.h"
+
 #include "common/common/assert.h"
 #include "common/common/dump_state_utils.h"
 #include "common/common/empty_string.h"
 #include "common/singleton/const_singleton.h"
 
 #include "absl/strings/match.h"
-#include "envoy/http/header_map.h"
 
 namespace Envoy {
 namespace Http {
@@ -195,7 +196,7 @@ void HeaderMapImpl::HeaderEntryImpl::value(const HeaderEntry& header) {
 
 // Registration for RequestHeaderMap
 #define REGISTER_DEFAULT_REQUEST_HEADER(name)                                                      \
-  RegisterCustomInlineHeader<CustomInlineHeaderRegistry::Type::RequestHeaders>            \
+  RegisterCustomInlineHeader<CustomInlineHeaderRegistry::Type::RequestHeaders>                     \
       default_header_RequestHeaderMap_##name##_registered(Headers::get().name);
 INLINE_REQ_HEADERS(REGISTER_DEFAULT_REQUEST_HEADER)
 INLINE_REQ_RESP_HEADERS(REGISTER_DEFAULT_REQUEST_HEADER)
@@ -215,13 +216,13 @@ HeaderMapImpl::StaticLookupTable<RequestHeaderMapImpl, RequestHeaderMap>::Static
       CustomInlineHeaderRegistry::getInlineHeader<RequestHeaderMap::header_map_type>(
           Headers::get().Host);
   add(Headers::get().HostLegacy.get().c_str(), [handle](ImplType& h) -> StaticLookupResponse {
-    return {&h.inline_headers_[handle.value().it->second], &handle.value().it->first};
+    return {&h.inline_headers_[handle.value().it_->second], &handle.value().it_->first};
   });
 }
 
 // Registration for ResponseHeaderMap
 #define REGISTER_RESPONSE_HEADER(name)                                                             \
-  RegisterCustomInlineHeader<CustomInlineHeaderRegistry::Type::ResponseHeaders>           \
+  RegisterCustomInlineHeader<CustomInlineHeaderRegistry::Type::ResponseHeaders>                    \
       response_header_##name##_registered(Headers::get().name);
 INLINE_RESP_HEADERS(REGISTER_RESPONSE_HEADER)
 INLINE_REQ_RESP_HEADERS(REGISTER_RESPONSE_HEADER)
@@ -230,7 +231,8 @@ INLINE_RESP_HEADERS_TRAILERS(REGISTER_RESPONSE_HEADER)
 template <>
 HeaderMapImpl::StaticLookupTable<ResponseHeaderMapImpl, ResponseHeaderMap>::StaticLookupTable() {
   // TODO(mattklein123): de-dup.
-  for (const auto& header : CustomInlineHeaderRegistry::headers<ResponseHeaderMap::header_map_type>()) {
+  for (const auto& header :
+       CustomInlineHeaderRegistry::headers<ResponseHeaderMap::header_map_type>()) {
     add(header.first.get().c_str(), [&header](ImplType& h) -> StaticLookupResponse {
       return {&h.inline_headers_[header.second], &header.first};
     });
@@ -239,14 +241,15 @@ HeaderMapImpl::StaticLookupTable<ResponseHeaderMapImpl, ResponseHeaderMap>::Stat
 
 // RegistrationForResponseTrailerMap
 #define REGISTER_RESPONSE_TRAILER(name)                                                            \
-  RegisterCustomInlineHeader<CustomInlineHeaderRegistry::Type::ResponseTrailers> response_trailer_##name##_registered(             \
-      Headers::get().name);
+  RegisterCustomInlineHeader<CustomInlineHeaderRegistry::Type::ResponseTrailers>                   \
+      response_trailer_##name##_registered(Headers::get().name);
 INLINE_RESP_HEADERS_TRAILERS(REGISTER_RESPONSE_TRAILER)
 
 template <>
 HeaderMapImpl::StaticLookupTable<ResponseTrailerMapImpl, ResponseTrailerMap>::StaticLookupTable() {
   // TODO(mattklein123): de-dup.
-  for (const auto& header : CustomInlineHeaderRegistry::headers<ResponseTrailerMap::header_map_type>()) {
+  for (const auto& header :
+       CustomInlineHeaderRegistry::headers<ResponseTrailerMap::header_map_type>()) {
     add(header.first.get().c_str(), [&header](ImplType& h) -> StaticLookupResponse {
       return {&h.inline_headers_[header.second], &header.first};
     });

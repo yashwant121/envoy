@@ -511,7 +511,7 @@ INSTANTIATE_TEST_SUITE_P(IpVersions, AdminInstanceTest,
                          TestUtility::ipTestParamsToString);
 
 TEST_P(AdminInstanceTest, StatsInvalidRegex) {
-  Http::ResponseHeaderMapImpl header_map;
+  Http::TestResponseHeaderMapImpl header_map;
   Buffer::OwnedImpl data;
   EXPECT_LOG_CONTAINS(
       "error", "Invalid regex: ",
@@ -526,7 +526,7 @@ TEST_P(AdminInstanceTest, StatsInvalidRegex) {
 }
 
 TEST_P(AdminInstanceTest, PrometheusStatsInvalidRegex) {
-  Http::ResponseHeaderMapImpl header_map;
+  Http::TestResponseHeaderMapImpl header_map;
   Buffer::OwnedImpl data;
   EXPECT_LOG_CONTAINS(
       "error", ": *.ptest",

@@ -419,10 +419,10 @@ public:
   }
 
 protected:
-  void performRequest(Http::TestHeaderMapImpl&& request_headers,
-                      Http::TestHeaderMapImpl&& expected_request_headers,
-                      Http::TestHeaderMapImpl&& response_headers,
-                      Http::TestHeaderMapImpl&& expected_response_headers) {
+  void performRequest(Http::TestRequestHeaderMapImpl&& request_headers,
+                      Http::TestRequestHeaderMapImpl&& expected_request_headers,
+                      Http::TestResponseHeaderMapImpl&& response_headers,
+                      Http::TestResponseHeaderMapImpl&& expected_response_headers) {
     registerTestServerPorts({"http"});
     codec_client_ = makeHttpConnection(makeClientConnection(lookupPort("http")));
     auto response = sendRequestAndWaitForResponse(request_headers, 0, response_headers, 0);
@@ -431,8 +431,8 @@ protected:
     compareHeaders(response->headers(), expected_response_headers);
   }
 
-  void compareHeaders(Http::TestHeaderMapImpl&& headers,
-                      Http::TestHeaderMapImpl& expected_headers) {
+  template <class T>
+  void compareHeaders(T&& headers, T& expected_headers) {
     headers.remove(Envoy::Http::LowerCaseString{"content-length"});
     headers.remove(Envoy::Http::LowerCaseString{"date"});
     if (!routerSuppressEnvoyHeaders()) {

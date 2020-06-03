@@ -16,11 +16,11 @@ static void addDummyHeaders(HeaderMap& headers, size_t num_headers) {
   }
 }
 
-/** Measure the construction/destruction speed of HeaderMapImpl.*/
+/** Measure the construction/destruction speed of RequestHeaderMapImpl.*/
 static void HeaderMapImplCreate(benchmark::State& state) {
   for (auto _ : state) {
-    HeaderMapImpl headers;
-    benchmark::DoNotOptimize(headers.size());
+    auto headers = Http::ResponseHeaderMapImpl::create();
+    benchmark::DoNotOptimize(headers->size());
   }
 }
 BENCHMARK(HeaderMapImplCreate);
@@ -35,10 +35,10 @@ BENCHMARK(HeaderMapImplCreate);
 static void HeaderMapImplSetReference(benchmark::State& state) {
   const LowerCaseString key("example-key");
   const std::string value("01234567890123456789");
-  HeaderMapImpl headers;
-  addDummyHeaders(headers, state.range(0));
+  auto headers = Http::ResponseHeaderMapImpl::create();
+  addDummyHeaders(*headers, state.range(0));
   for (auto _ : state) {
-    headers.setReference(key, value);
+    headers->setReference(key, value);
   }
   benchmark::DoNotOptimize(headers.size());
 }
@@ -55,12 +55,12 @@ BENCHMARK(HeaderMapImplSetReference)->Arg(0)->Arg(1)->Arg(10)->Arg(50);
 static void HeaderMapImplGet(benchmark::State& state) {
   const LowerCaseString key("example-key");
   const std::string value("01234567890123456789");
-  HeaderMapImpl headers;
-  addDummyHeaders(headers, state.range(0));
+  auto headers = Http::ResponseHeaderMapImpl::create();
+  addDummyHeaders(*headers, state.range(0));
   headers.setReference(key, value);
   size_t successes = 0;
   for (auto _ : state) {
-    successes += (headers.get(key) != nullptr);
+    successes += (headers->get(key) != nullptr);
   }
   benchmark::DoNotOptimize(successes);
 }
@@ -72,12 +72,12 @@ BENCHMARK(HeaderMapImplGet)->Arg(0)->Arg(1)->Arg(10)->Arg(50);
  */
 static void HeaderMapImplGetInline(benchmark::State& state) {
   const std::string value("01234567890123456789");
-  RequestHeaderMapImpl headers;
-  addDummyHeaders(headers, state.range(0));
-  headers.setReferenceConnection(value);
+  auto headers = Http::ResponseHeaderMapImpl::create();
+  addDummyHeaders(*headers, state.range(0));
+  headers->setReferenceConnection(value);
   size_t size = 0;
   for (auto _ : state) {
-    size += headers.Connection()->value().size();
+    size += headers->Connection()->value().size();
   }
   benchmark::DoNotOptimize(size);
 }
@@ -89,10 +89,10 @@ BENCHMARK(HeaderMapImplGetInline)->Arg(0)->Arg(1)->Arg(10)->Arg(50);
  */
 static void HeaderMapImplSetInlineMacro(benchmark::State& state) {
   const std::string value("01234567890123456789");
-  RequestHeaderMapImpl headers;
-  addDummyHeaders(headers, state.range(0));
+  auto headers = Http::ResponseHeaderMapImpl::create();
+  addDummyHeaders(*headers, state.range(0));
   for (auto _ : state) {
-    headers.setReferenceConnection(value);
+    headers->setReferenceConnection(value);
   }
   benchmark::DoNotOptimize(headers.size());
 }
@@ -104,10 +104,10 @@ BENCHMARK(HeaderMapImplSetInlineMacro)->Arg(0)->Arg(1)->Arg(10)->Arg(50);
  */
 static void HeaderMapImplSetInlineInteger(benchmark::State& state) {
   uint64_t value = 12345;
-  RequestHeaderMapImpl headers;
-  addDummyHeaders(headers, state.range(0));
+  auto headers = Http::ResponseHeaderMapImpl::create();
+  addDummyHeaders(*headers, state.range(0));
   for (auto _ : state) {
-    headers.setConnection(value);
+    headers->setConnection(value);
   }
   benchmark::DoNotOptimize(headers.size());
 }
@@ -115,11 +115,11 @@ BENCHMARK(HeaderMapImplSetInlineInteger)->Arg(0)->Arg(1)->Arg(10)->Arg(50);
 
 /** Measure the speed of the byteSize() estimation method. */
 static void HeaderMapImplGetByteSize(benchmark::State& state) {
-  HeaderMapImpl headers;
-  addDummyHeaders(headers, state.range(0));
+  auto headers = Http::ResponseHeaderMapImpl::create();
+  addDummyHeaders(*headers, state.range(0));
   uint64_t size = 0;
   for (auto _ : state) {
-    size += headers.byteSize();
+    size += headers->byteSize();
   }
   benchmark::DoNotOptimize(size);
 }
@@ -127,15 +127,15 @@ BENCHMARK(HeaderMapImplGetByteSize)->Arg(0)->Arg(1)->Arg(10)->Arg(50);
 
 /** Measure the speed of iteration with a lightweight callback. */
 static void HeaderMapImplIterate(benchmark::State& state) {
-  HeaderMapImpl headers;
+  auto headers = Http::ResponseHeaderMapImpl::create();
   size_t num_callbacks = 0;
-  addDummyHeaders(headers, state.range(0));
+  addDummyHeaders(*headers, state.range(0));
   auto counting_callback = [](const HeaderEntry&, void* context) -> HeaderMap::Iterate {
     (*static_cast<size_t*>(context))++;
     return HeaderMap::Iterate::Continue;
   };
   for (auto _ : state) {
-    headers.iterate(counting_callback, &num_callbacks);
+    headers->iterate(counting_callback, &num_callbacks);
   }
   benchmark::DoNotOptimize(num_callbacks);
 }
@@ -145,12 +145,12 @@ BENCHMARK(HeaderMapImplIterate)->Arg(0)->Arg(1)->Arg(10)->Arg(50);
 static void HeaderMapImplLookup(benchmark::State& state) {
   const LowerCaseString key("connection");
   const std::string value("01234567890123456789");
-  HeaderMapImpl headers;
-  addDummyHeaders(headers, state.range(0));
-  headers.addReference(key, value);
+  auto headers = Http::ResponseHeaderMapImpl::create();
+  addDummyHeaders(*headers, state.range(0));
+  headers->addReference(key, value);
   for (auto _ : state) {
     const HeaderEntry* entry = nullptr;
-    auto result = headers.lookup(key, &entry);
+    auto result = headers->lookup(key, &entry);
     benchmark::DoNotOptimize(result);
   }
 }
@@ -164,11 +164,11 @@ BENCHMARK(HeaderMapImplLookup)->Arg(0)->Arg(1)->Arg(10)->Arg(50);
 static void HeaderMapImplRemove(benchmark::State& state) {
   const LowerCaseString key("example-key");
   const std::string value("01234567890123456789");
-  HeaderMapImpl headers;
-  addDummyHeaders(headers, state.range(0));
+  auto headers = Http::ResponseHeaderMapImpl::create();
+  addDummyHeaders(*headers, state.range(0));
   for (auto _ : state) {
-    headers.addReference(key, value);
-    headers.remove(key);
+    headers->addReference(key, value);
+    headers->remove(key);
   }
   benchmark::DoNotOptimize(headers.size());
 }
@@ -183,11 +183,11 @@ BENCHMARK(HeaderMapImplRemove)->Arg(0)->Arg(1)->Arg(10)->Arg(50);
 static void HeaderMapImplRemoveInline(benchmark::State& state) {
   const LowerCaseString key("connection");
   const std::string value("01234567890123456789");
-  HeaderMapImpl headers;
-  addDummyHeaders(headers, state.range(0));
+  auto headers = Http::ResponseHeaderMapImpl::create();
+  addDummyHeaders(*headers, state.range(0));
   for (auto _ : state) {
-    headers.addReference(key, value);
-    headers.remove(key);
+    headers->addReference(key, value);
+    headers->remove(key);
   }
   benchmark::DoNotOptimize(headers.size());
 }
@@ -211,11 +211,11 @@ static void HeaderMapImplPopulate(benchmark::State& state) {
       {LowerCaseString("set-cookie"), "_cookie2=12345678; path = /; secure"},
   };
   for (auto _ : state) {
-    HeaderMapImpl headers;
+    auto headers = Http::ResponseHeaderMapImpl::create();
     for (const auto& key_value : headers_to_add) {
-      headers.addReference(key_value.first, key_value.second);
+      headers->addReference(key_value.first, key_value.second);
     }
-    benchmark::DoNotOptimize(headers.size());
+    benchmark::DoNotOptimize(headers->size());
   }
 }
 BENCHMARK(HeaderMapImplPopulate);

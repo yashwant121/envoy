@@ -627,12 +627,15 @@ using HeaderMapPtr = std::unique_ptr<HeaderMap>;
 class CustomInlineHeaderRegistry {
 public:
   enum class Type { RequestHeaders, RequestTrailers, ResponseHeaders, ResponseTrailers };
-
   using RegistrationMap = std::map<LowerCaseString, size_t>;
-  // Phantom is used here to force the compiler to verify that handles are not mixed between
-  // concrete header map types.
-  // fixfixusing Handle = Phantom<RegistrationMap::const_iterator, T>;
-  template <Type type> struct Handle { RegistrationMap::const_iterator it; };
+
+  // A "phantom" type is used here to force the compiler to verify that handles are not mixed
+  // between concrete header map types.
+  template <Type type> struct Handle {
+    Handle(RegistrationMap::const_iterator it) : it_(it) {}
+
+    RegistrationMap::const_iterator it_;
+  };
 
   /**
    * Register an inline header and return a handle for use in inline header calls. Must be called
@@ -719,7 +722,7 @@ public:
   virtual ~CustomInlineHeaderBase() = default;
 
   static constexpr CustomInlineHeaderRegistry::Type header_map_type = type;
-  using Handle = CustomInlineHeaderRegistry::Handle<type>;
+  using Handle = CustomInlineHeaderRegistry::Handle<header_map_type>;
 
   virtual const HeaderEntry* getInline(Handle handle) const PURE;
   virtual void appendInline(Handle handle, absl::string_view data,
@@ -750,8 +753,9 @@ public:
 using RequestHeaderMapPtr = std::unique_ptr<RequestHeaderMap>;
 
 // Request trailers.
-class RequestTrailerMap : public HeaderMap,
-public CustomInlineHeaderBase<CustomInlineHeaderRegistry::Type::RequestTrailers> {};
+class RequestTrailerMap
+    : public HeaderMap,
+      public CustomInlineHeaderBase<CustomInlineHeaderRegistry::Type::RequestTrailers> {};
 using RequestTrailerMapPtr = std::unique_ptr<RequestTrailerMap>;
 
 // Base class for both response headers and trailers.
@@ -763,16 +767,20 @@ public:
 };
 
 // Response headers.
-class ResponseHeaderMap : public RequestOrResponseHeaderMap, public ResponseHeaderOrTrailerMap,
-public CustomInlineHeaderBase<CustomInlineHeaderRegistry::Type::ResponseHeaders> {
+class ResponseHeaderMap
+    : public RequestOrResponseHeaderMap,
+      public ResponseHeaderOrTrailerMap,
+      public CustomInlineHeaderBase<CustomInlineHeaderRegistry::Type::ResponseHeaders> {
 public:
   INLINE_RESP_HEADERS(DEFINE_INLINE_HEADER)
 };
 using ResponseHeaderMapPtr = std::unique_ptr<ResponseHeaderMap>;
 
 // Response trailers.
-class ResponseTrailerMap : public ResponseHeaderOrTrailerMap, public HeaderMap,
-public CustomInlineHeaderBase<CustomInlineHeaderRegistry::Type::ResponseTrailers> {};
+class ResponseTrailerMap
+    : public ResponseHeaderOrTrailerMap,
+      public HeaderMap,
+      public CustomInlineHeaderBase<CustomInlineHeaderRegistry::Type::ResponseTrailers> {};
 using ResponseTrailerMapPtr = std::unique_ptr<ResponseTrailerMap>;
 
 /**

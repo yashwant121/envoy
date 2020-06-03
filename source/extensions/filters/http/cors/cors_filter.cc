@@ -1,6 +1,7 @@
 #include "extensions/filters/http/cors/cors_filter.h"
 
 #include "envoy/http/codes.h"
+#include "envoy/http/header_map.h"
 #include "envoy/stats/scope.h"
 
 #include "common/common/empty_string.h"
@@ -13,19 +14,19 @@ namespace Extensions {
 namespace HttpFilters {
 namespace Cors {
 
-Http::RegisterCustomInlineHeader<Http::RequestHeaderMap>
+Http::RegisterCustomInlineHeader<Http::CustomInlineHeaderRegistry::Type::RequestHeaders>
     access_control_request_method(Http::Headers::get().AccessControlRequestMethod);
-Http::RegisterCustomInlineHeader<Http::ResponseHeaderMap>
+Http::RegisterCustomInlineHeader<Http::CustomInlineHeaderRegistry::Type::ResponseHeaders>
     access_control_allow_origin(Http::Headers::get().AccessControlAllowOrigin);
-Http::RegisterCustomInlineHeader<Http::ResponseHeaderMap>
+Http::RegisterCustomInlineHeader<Http::CustomInlineHeaderRegistry::Type::ResponseHeaders>
     access_control_allow_credentials(Http::Headers::get().AccessControlAllowCredentials);
-Http::RegisterCustomInlineHeader<Http::ResponseHeaderMap>
+Http::RegisterCustomInlineHeader<Http::CustomInlineHeaderRegistry::Type::ResponseHeaders>
     access_control_allow_methods(Http::Headers::get().AccessControlAllowMethods);
-Http::RegisterCustomInlineHeader<Http::ResponseHeaderMap>
+Http::RegisterCustomInlineHeader<Http::CustomInlineHeaderRegistry::Type::ResponseHeaders>
     access_control_allow_headers(Http::Headers::get().AccessControlAllowHeaders);
-Http::RegisterCustomInlineHeader<Http::ResponseHeaderMap>
+Http::RegisterCustomInlineHeader<Http::CustomInlineHeaderRegistry::Type::ResponseHeaders>
     access_control_max_age(Http::Headers::get().AccessControlMaxAge);
-Http::RegisterCustomInlineHeader<Http::ResponseHeaderMap>
+Http::RegisterCustomInlineHeader<Http::CustomInlineHeaderRegistry::Type::ResponseHeaders>
     access_control_expose_headers(Http::Headers::get().AccessControlExposeHeaders);
 
 CorsFilterConfig::CorsFilterConfig(const std::string& stats_prefix, Stats::Scope& scope)

@@ -296,38 +296,38 @@ public:
   // Generic custom header functions for each fully typed interface. To avoid accidental issues,
   // the Handle type is different for each interface, which is why these functions live here vs.
   // inside HeaderMapImpl.
-  using Handle = typename CustomInlineHeaderRegistry::Handle<Interface::header_map_type>;
+  using Handle = CustomInlineHeaderRegistry::Handle<Interface::header_map_type>;
   const HeaderEntry* getInline(Handle handle) const override {
-    ASSERT(handle.it->second < inlineHeadersSize());
-    return constInlineHeaders()[handle.it->second];
+    ASSERT(handle.it_->second < inlineHeadersSize());
+    return constInlineHeaders()[handle.it_->second];
   }
   void appendInline(Handle handle, absl::string_view data, absl::string_view delimiter) override {
-    ASSERT(handle.it->second < inlineHeadersSize());
-    HeaderEntry& entry = maybeCreateInline(&inlineHeaders()[handle.it->second], handle.it->first);
+    ASSERT(handle.it_->second < inlineHeadersSize());
+    HeaderEntry& entry = maybeCreateInline(&inlineHeaders()[handle.it_->second], handle.it_->first);
     addSize(HeaderMapImpl::appendToHeader(entry.value(), data, delimiter));
   }
   void setReferenceInline(Handle handle, absl::string_view value) override {
-    ASSERT(handle.it->second < inlineHeadersSize());
-    HeaderEntry& entry = maybeCreateInline(&inlineHeaders()[handle.it->second], handle.it->first);
+    ASSERT(handle.it_->second < inlineHeadersSize());
+    HeaderEntry& entry = maybeCreateInline(&inlineHeaders()[handle.it_->second], handle.it_->first);
     updateSize(entry.value().size(), value.size());
     entry.value().setReference(value);
   }
   void setInline(Handle handle, absl::string_view value) override {
-    ASSERT(handle.it->second < inlineHeadersSize());
-    HeaderEntry& entry = maybeCreateInline(&inlineHeaders()[handle.it->second], handle.it->first);
+    ASSERT(handle.it_->second < inlineHeadersSize());
+    HeaderEntry& entry = maybeCreateInline(&inlineHeaders()[handle.it_->second], handle.it_->first);
     updateSize(entry.value().size(), value.size());
     entry.value().setCopy(value);
   }
   void setInline(Handle handle, uint64_t value) override {
-    ASSERT(handle.it->second < inlineHeadersSize());
-    HeaderEntry& entry = maybeCreateInline(&inlineHeaders()[handle.it->second], handle.it->first);
+    ASSERT(handle.it_->second < inlineHeadersSize());
+    HeaderEntry& entry = maybeCreateInline(&inlineHeaders()[handle.it_->second], handle.it_->first);
     subtractSize(entry.value().size());
     entry.value().setInteger(value);
     addSize(entry.value().size());
   }
   size_t removeInline(Handle handle) override {
-    ASSERT(handle.it->second < inlineHeadersSize());
-    return HeaderMapImpl::removeInline(&inlineHeaders()[handle.it->second]);
+    ASSERT(handle.it_->second < inlineHeadersSize());
+    return HeaderMapImpl::removeInline(&inlineHeaders()[handle.it_->second]);
   }
 
 protected:
@@ -340,7 +340,7 @@ protected:
   virtual HeaderEntryImpl** inlineHeaders() PURE;
 };
 
-#define DEFINE_HEADER_HANDLE(name)                                                         \
+#define DEFINE_HEADER_HANDLE(name)                                                                 \
   Handle name =                                                                                    \
       CustomInlineHeaderRegistry::getInlineHeader<header_map_type>(Headers::get().name).value();
 
@@ -368,8 +368,7 @@ private:
   RequestHeaderMapImpl() { clearInlineHelper(); }
 
   absl::optional<StaticLookupResponse> staticLookup(absl::string_view key) override {
-    return StaticLookupTable<
-        RequestHeaderMapImpl, RequestHeaderMap>::lookup(*this, key);
+    return StaticLookupTable<RequestHeaderMapImpl, RequestHeaderMap>::lookup(*this, key);
   }
   void clearInline() override { clearInlineHelper(); }
   void clearInlineHelper() { memset(inline_headers_, 0, inlineHeadersSize()); }
@@ -384,8 +383,7 @@ private:
  * Concrete implementation of RequestTrailerMap which allows for variable custom registered inline
  * headers.
  */
-class RequestTrailerMapImpl
-    : public TypedHeaderMapImpl<RequestTrailerMap> {
+class RequestTrailerMapImpl : public TypedHeaderMapImpl<RequestTrailerMap> {
 public:
   // TODO(mattklein123): Actually wire up variable inline headers.
   static std::unique_ptr<RequestTrailerMapImpl> create() {
@@ -405,9 +403,7 @@ private:
  * Concrete implementation of ResponseHeaderMap which allows for variable custom registered inline
  * headers.
  */
-class ResponseHeaderMapImpl
-    : public TypedHeaderMapImpl<ResponseHeaderMap>,
-      public InlineStorage {
+class ResponseHeaderMapImpl : public TypedHeaderMapImpl<ResponseHeaderMap>, public InlineStorage {
 public:
   static std::unique_ptr<ResponseHeaderMapImpl> create() {
     return std::unique_ptr<ResponseHeaderMapImpl>(new (inlineHeadersSize())
@@ -430,8 +426,7 @@ private:
   ResponseHeaderMapImpl() { clearInlineHelper(); }
 
   absl::optional<StaticLookupResponse> staticLookup(absl::string_view key) override {
-    return StaticLookupTable<
-        ResponseHeaderMapImpl, ResponseHeaderMap>::lookup(*this, key);
+    return StaticLookupTable<ResponseHeaderMapImpl, ResponseHeaderMap>::lookup(*this, key);
   }
   void clearInline() override { clearInlineHelper(); }
   void clearInlineHelper() { memset(inline_headers_, 0, inlineHeadersSize()); }
@@ -446,9 +441,7 @@ private:
  * Concrete implementation of ResponseTrailerMap which allows for variable custom registered
  * inline headers.
  */
-class ResponseTrailerMapImpl
-    : public TypedHeaderMapImpl<ResponseTrailerMap>,
-      public InlineStorage {
+class ResponseTrailerMapImpl : public TypedHeaderMapImpl<ResponseTrailerMap>, public InlineStorage {
 public:
   static std::unique_ptr<ResponseTrailerMapImpl> create() {
     return std::unique_ptr<ResponseTrailerMapImpl>(new (inlineHeadersSize())
@@ -467,8 +460,7 @@ private:
   ResponseTrailerMapImpl() { clearInlineHelper(); }
 
   absl::optional<StaticLookupResponse> staticLookup(absl::string_view key) override {
-    return StaticLookupTable<
-        ResponseTrailerMapImpl, ResponseTrailerMap>::lookup(*this, key);
+    return StaticLookupTable<ResponseTrailerMapImpl, ResponseTrailerMap>::lookup(*this, key);
   }
   void clearInline() override { clearInlineHelper(); }
   void clearInlineHelper() { memset(inline_headers_, 0, inlineHeadersSize()); }

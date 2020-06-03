@@ -787,7 +787,7 @@ public:
     header_map_->dumpState(os, indent_level);
   }
 
-  using Handle = typename CustomInlineHeaderRegistry<Interface>::Handle;
+  using Handle = typename CustomInlineHeaderRegistry::Handle<Interface::header_map_type>;
   const HeaderEntry* getInline(Handle handle) const override {
     return header_map_->getInline(handle);
   }
