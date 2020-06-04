@@ -123,9 +123,9 @@ TEST_F(LuaHeaderMapWrapperTest, Replace) {
   HeaderMapWrapper::create(coroutine_->luaState(), headers, []() { return true; });
   start("callMe");
 
-  EXPECT_EQ((Http::TestHeaderMapImpl{{":path", "/new_path"},
-                                     {"other_header", "other_header_value"},
-                                     {"new_header", "new_header_value"}}),
+  EXPECT_EQ((Http::TestRequestHeaderMapImpl{{":path", "/new_path"},
+                                            {"other_header", "other_header_value"},
+                                            {"new_header", "new_header_value"}}),
             headers);
 }
 

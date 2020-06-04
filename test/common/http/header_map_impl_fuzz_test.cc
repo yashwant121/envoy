@@ -16,7 +16,7 @@ namespace Envoy {
 
 // Fuzz the header map implementation.
 DEFINE_PROTO_FUZZER(const test::common::http::HeaderMapImplFuzzTestCase& input) {
-  auto header_map = std::make_unique<Http::HeaderMapImpl>();
+  auto header_map = Http::RequestHeaderMapImpl::create();
   std::vector<std::unique_ptr<Http::LowerCaseString>> lower_case_strings;
   std::vector<std::unique_ptr<std::string>> strings;
   uint64_t set_integer;

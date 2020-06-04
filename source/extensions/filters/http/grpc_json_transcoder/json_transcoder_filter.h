@@ -171,7 +171,8 @@ private:
   bool maybeConvertGrpcStatus(Grpc::Status::GrpcStatus grpc_status,
                               Http::ResponseHeaderOrTrailerMap& trailers);
   bool hasHttpBodyAsOutputType();
-  void doTrailers(Http::ResponseHeaderOrTrailerMap& headers_or_trailers);
+  void doTrailers(Http::ResponseHeaderOrTrailerMap& headers_or_trailers,
+                  Http::HeaderMap& header_map);
 
   JsonTranscoderConfig& config_;
   std::unique_ptr<google::grpc::transcoding::Transcoder> transcoder_;

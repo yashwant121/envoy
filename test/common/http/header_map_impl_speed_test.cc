@@ -40,7 +40,7 @@ static void HeaderMapImplSetReference(benchmark::State& state) {
   for (auto _ : state) {
     headers->setReference(key, value);
   }
-  benchmark::DoNotOptimize(headers.size());
+  benchmark::DoNotOptimize(headers->size());
 }
 BENCHMARK(HeaderMapImplSetReference)->Arg(0)->Arg(1)->Arg(10)->Arg(50);
 
@@ -57,7 +57,7 @@ static void HeaderMapImplGet(benchmark::State& state) {
   const std::string value("01234567890123456789");
   auto headers = Http::ResponseHeaderMapImpl::create();
   addDummyHeaders(*headers, state.range(0));
-  headers.setReference(key, value);
+  headers->setReference(key, value);
   size_t successes = 0;
   for (auto _ : state) {
     successes += (headers->get(key) != nullptr);
@@ -94,7 +94,7 @@ static void HeaderMapImplSetInlineMacro(benchmark::State& state) {
   for (auto _ : state) {
     headers->setReferenceConnection(value);
   }
-  benchmark::DoNotOptimize(headers.size());
+  benchmark::DoNotOptimize(headers->size());
 }
 BENCHMARK(HeaderMapImplSetInlineMacro)->Arg(0)->Arg(1)->Arg(10)->Arg(50);
 
@@ -109,7 +109,7 @@ static void HeaderMapImplSetInlineInteger(benchmark::State& state) {
   for (auto _ : state) {
     headers->setConnection(value);
   }
-  benchmark::DoNotOptimize(headers.size());
+  benchmark::DoNotOptimize(headers->size());
 }
 BENCHMARK(HeaderMapImplSetInlineInteger)->Arg(0)->Arg(1)->Arg(10)->Arg(50);
 
@@ -170,7 +170,7 @@ static void HeaderMapImplRemove(benchmark::State& state) {
     headers->addReference(key, value);
     headers->remove(key);
   }
-  benchmark::DoNotOptimize(headers.size());
+  benchmark::DoNotOptimize(headers->size());
 }
 BENCHMARK(HeaderMapImplRemove)->Arg(0)->Arg(1)->Arg(10)->Arg(50);
 
@@ -189,7 +189,7 @@ static void HeaderMapImplRemoveInline(benchmark::State& state) {
     headers->addReference(key, value);
     headers->remove(key);
   }
-  benchmark::DoNotOptimize(headers.size());
+  benchmark::DoNotOptimize(headers->size());
 }
 BENCHMARK(HeaderMapImplRemoveInline)->Arg(0)->Arg(1)->Arg(10)->Arg(50);
 

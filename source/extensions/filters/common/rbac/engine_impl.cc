@@ -51,7 +51,8 @@ bool RoleBasedAccessControlEngineImpl::allowed(const Network::Connection& connec
 bool RoleBasedAccessControlEngineImpl::allowed(const Network::Connection& connection,
                                                const StreamInfo::StreamInfo& info,
                                                std::string* effective_policy_id) const {
-  return allowed(connection, *Http::StaticEmptyHeaders::get().request_headers, info, effective_policy_id);
+  return allowed(connection, *Http::StaticEmptyHeaders::get().request_headers, info,
+                 effective_policy_id);
 }
 
 } // namespace RBAC

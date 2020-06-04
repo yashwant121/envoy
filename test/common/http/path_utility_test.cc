@@ -1,8 +1,9 @@
 #include <utility>
 #include <vector>
 
-#include "common/http/header_map_impl.h"
 #include "common/http/path_utility.h"
+
+#include "test/test_common/utility.h"
 
 #include "gtest/gtest.h"
 

@@ -30,7 +30,7 @@ DEFINE_PROTO_FUZZER(const test::common::http::UtilityTestCase& input) {
     // Use the production RequestHeaderMapImpl to avoid timeouts from TestHeaderMapImpl asserts.
     auto headers = Http::RequestHeaderMapImpl::create();
     headers->addCopy(Http::LowerCaseString("x-forwarded-for"),
-                    replaceInvalidCharacters(get_last_address_from_xff.xff()));
+                     replaceInvalidCharacters(get_last_address_from_xff.xff()));
     // Take num_to_skip modulo 32 to avoid wasting time in lala land.
     Http::Utility::getLastAddressFromXFF(*headers, get_last_address_from_xff.num_to_skip() % 32);
     break;

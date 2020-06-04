@@ -506,7 +506,7 @@ TEST_F(HystrixSinkTest, HystrixEventStreamHandler) {
   // This value doesn't matter in handlerHystrixEventStream
   absl::string_view path_and_query;
 
-  Http::ResponseHeaderMapImpl response_headers;
+  Http::TestResponseHeaderMapImpl response_headers;
 
   NiceMock<Server::MockAdminStream> admin_stream_mock;
   NiceMock<Network::MockConnection> connection_mock;

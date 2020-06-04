@@ -22,7 +22,8 @@ TEST(HeaderMapEqualIgnoreOrder, IgnoreOrder) {
 }
 
 TEST(HeaderMapEqualIgnoreOrder, NotEqual) {
-  Http::TestRequestHeaderMapImpl lhs{{":method", "GET"}, {":authority", "host"}, {":authority", "host"}};
+  Http::TestRequestHeaderMapImpl lhs{
+      {":method", "GET"}, {":authority", "host"}, {":authority", "host"}};
   Http::TestRequestHeaderMapImpl rhs{{":method", "GET"}, {":authority", "host"}};
   EXPECT_FALSE(TestUtility::headerMapEqualIgnoreOrder(lhs, rhs));
 }

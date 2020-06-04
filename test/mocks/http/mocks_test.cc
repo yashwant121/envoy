@@ -86,8 +86,8 @@ TEST(IsSubsetOfHeadersTest, MutableHeaderMap) {
 TEST(IsSupersetOfHeadersTest, ConstHeaderMap) {
   const TestRequestHeaderMapImpl header_map{{"first key", "1"}, {"second key", "2"}};
 
-  EXPECT_THAT(header_map,
-              IsSupersetOfHeaders(TestRequestHeaderMapImpl{{"first key", "1"}, {"second key", "2"}}));
+  EXPECT_THAT(header_map, IsSupersetOfHeaders(
+                              TestRequestHeaderMapImpl{{"first key", "1"}, {"second key", "2"}}));
   EXPECT_THAT(header_map, IsSupersetOfHeaders(TestRequestHeaderMapImpl{{"first key", "1"}}));
 
   EXPECT_THAT(header_map, Not(IsSupersetOfHeaders(TestRequestHeaderMapImpl{{"third key", "1"}})));
@@ -98,8 +98,8 @@ TEST(IsSupersetOfHeadersTest, MutableHeaderMap) {
   header_map.addCopy("first key", "1");
   header_map.addCopy("second key", "2");
 
-  EXPECT_THAT(header_map,
-              IsSupersetOfHeaders(TestRequestHeaderMapImpl{{"first key", "1"}, {"second key", "2"}}));
+  EXPECT_THAT(header_map, IsSupersetOfHeaders(
+                              TestRequestHeaderMapImpl{{"first key", "1"}, {"second key", "2"}}));
   EXPECT_THAT(header_map, IsSupersetOfHeaders(TestRequestHeaderMapImpl{{"first key", "1"}}));
 
   EXPECT_THAT(header_map, Not(IsSupersetOfHeaders(TestRequestHeaderMapImpl{{"third key", "1"}})));

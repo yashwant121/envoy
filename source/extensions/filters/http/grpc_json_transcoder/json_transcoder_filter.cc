@@ -496,7 +496,7 @@ Http::FilterHeadersStatus JsonTranscoderFilter::encodeHeaders(Http::ResponseHead
 
     // In gRPC wire protocol, headers frame with end_stream is a trailers-only response.
     // The return value from encodeTrailers is ignored since it is always continue.
-    doTrailers(headers);
+    doTrailers(headers, headers);
 
     return Http::FilterHeadersStatus::Continue;
   }
@@ -549,12 +549,13 @@ Http::FilterDataStatus JsonTranscoderFilter::encodeData(Buffer::Instance& data, 
 
 Http::FilterTrailersStatus
 JsonTranscoderFilter::encodeTrailers(Http::ResponseTrailerMap& trailers) {
-  doTrailers(trailers);
+  doTrailers(trailers, trailers);
 
   return Http::FilterTrailersStatus::Continue;
 }
 
-void JsonTranscoderFilter::doTrailers(Http::ResponseHeaderOrTrailerMap& headers_or_trailers) {
+void JsonTranscoderFilter::doTrailers(Http::ResponseHeaderOrTrailerMap& headers_or_trailers,
+                                      Http::HeaderMap& header_map) {
   if (error_ || !transcoder_) {
     return;
   }
@@ -563,7 +564,7 @@ void JsonTranscoderFilter::doTrailers(Http::ResponseHeaderOrTrailerMap& headers_
 
   const absl::optional<Grpc::Status::GrpcStatus> grpc_status =
       Grpc::Common::getGrpcStatus(headers_or_trailers, true);
-  if (grpc_status && maybeConvertGrpcStatus(*grpc_status, headers_or_trailers)) {
+  if (grpc_status && maybeConvertGrpcStatus(*grpc_status, header_map)) {
     return;
   }
 

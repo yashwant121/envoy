@@ -549,7 +549,7 @@ TEST_P(AdminInstanceTest, TracingStatsDisabled) {
 }
 
 TEST_P(AdminInstanceTest, GetRequestJson) {
-  Http::ResponseHeaderMapImpl response_headers;
+  Http::TestResponseHeaderMapImpl response_headers;
   std::string body;
   EXPECT_EQ(Http::Code::OK, admin_.request("/stats?format=json", "GET", response_headers, body));
   EXPECT_THAT(body, HasSubstr("{\"stats\":["));
@@ -557,7 +557,7 @@ TEST_P(AdminInstanceTest, GetRequestJson) {
 }
 
 TEST_P(AdminInstanceTest, RecentLookups) {
-  Http::ResponseHeaderMapImpl response_headers;
+  Http::TestResponseHeaderMapImpl response_headers;
   std::string body;
 
   // Recent lookup tracking is disabled by default.

@@ -164,7 +164,8 @@ public:
 
   void sendServerTrailers(Status::GrpcStatus grpc_status, const std::string& grpc_message,
                           const TestMetadata& metadata, bool trailers_only = false) {
-    Http::TestResponseTrailerMapImpl reply_trailers{{"grpc-status", std::to_string(enumToInt(grpc_status))}};
+    Http::TestResponseTrailerMapImpl reply_trailers{
+        {"grpc-status", std::to_string(enumToInt(grpc_status))}};
     if (!grpc_message.empty()) {
       reply_trailers.addCopy("grpc-message", grpc_message);
     }

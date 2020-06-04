@@ -188,7 +188,8 @@ invert_match: true
 }
 
 TEST(HeaderDataConstructorTest, GetAllOfHeader) {
-  TestRequestHeaderMapImpl headers{{"foo", "val1"}, {"bar", "bar2"}, {"foo", "eep, bar"}, {"foo", ""}};
+  TestRequestHeaderMapImpl headers{
+      {"foo", "val1"}, {"bar", "bar2"}, {"foo", "eep, bar"}, {"foo", ""}};
 
   std::vector<absl::string_view> foo_out;
   Http::HeaderUtility::getAllOfHeader(headers, "foo", foo_out);
@@ -273,7 +274,7 @@ name: match-header
 TEST(MatchHeadersTest, HeaderExactMatch) {
   TestRequestHeaderMapImpl matching_headers{{"match-header", "match-value"}};
   TestRequestHeaderMapImpl unmatching_headers{{"match-header", "other-value"},
-                                       {"other-header", "match-value"}};
+                                              {"other-header", "match-value"}};
   const std::string yaml = R"EOF(
 name: match-header
 exact_match: match-value
@@ -288,7 +289,7 @@ exact_match: match-value
 
 TEST(MatchHeadersTest, HeaderExactMatchInverse) {
   TestRequestHeaderMapImpl matching_headers{{"match-header", "other-value"},
-                                     {"other-header", "match-value"}};
+                                            {"other-header", "match-value"}};
   TestRequestHeaderMapImpl unmatching_headers{{"match-header", "match-value"}};
 
   const std::string yaml = R"EOF(
@@ -306,7 +307,8 @@ invert_match: true
 
 TEST(MatchHeadersTest, HeaderRegexMatch) {
   TestRequestHeaderMapImpl matching_headers{{"match-header", "123"}};
-  TestRequestHeaderMapImpl unmatching_headers{{"match-header", "1234"}, {"match-header", "123.456"}};
+  TestRequestHeaderMapImpl unmatching_headers{{"match-header", "1234"},
+                                              {"match-header", "123.456"}};
   const std::string yaml = R"EOF(
 name: match-header
 regex_match: \d{3}
@@ -321,7 +323,8 @@ regex_match: \d{3}
 
 TEST(MatchHeadersTest, HeaderSafeRegexMatch) {
   TestRequestHeaderMapImpl matching_headers{{"match-header", "123"}};
-  TestRequestHeaderMapImpl unmatching_headers{{"match-header", "1234"}, {"match-header", "123.456"}};
+  TestRequestHeaderMapImpl unmatching_headers{{"match-header", "1234"},
+                                              {"match-header", "123.456"}};
   const std::string yaml = R"EOF(
 name: match-header
 safe_regex_match:
@@ -356,9 +359,9 @@ invert_match: true
 TEST(MatchHeadersTest, HeaderRangeMatch) {
   TestRequestHeaderMapImpl matching_headers{{"match-header", "-1"}};
   TestRequestHeaderMapImpl unmatching_headers{{"match-header", "0"},
-                                       {"match-header", "somestring"},
-                                       {"match-header", "10.9"},
-                                       {"match-header", "-1somestring"}};
+                                              {"match-header", "somestring"},
+                                              {"match-header", "10.9"},
+                                              {"match-header", "-1somestring"}};
   const std::string yaml = R"EOF(
 name: match-header
 range_match:
@@ -375,9 +378,9 @@ range_match:
 
 TEST(MatchHeadersTest, HeaderRangeInverseMatch) {
   TestRequestHeaderMapImpl matching_headers{{"match-header", "0"},
-                                     {"match-header", "somestring"},
-                                     {"match-header", "10.9"},
-                                     {"match-header", "-1somestring"}};
+                                            {"match-header", "somestring"},
+                                            {"match-header", "10.9"},
+                                            {"match-header", "-1somestring"}};
   TestRequestHeaderMapImpl unmatching_headers{{"match-header", "-1"}};
 
   const std::string yaml = R"EOF(
@@ -398,7 +401,7 @@ invert_match: true
 TEST(MatchHeadersTest, HeaderPresentMatch) {
   TestRequestHeaderMapImpl matching_headers{{"match-header", "123"}};
   TestRequestHeaderMapImpl unmatching_headers{{"nonmatch-header", "1234"},
-                                       {"other-nonmatch-header", "123.456"}};
+                                              {"other-nonmatch-header", "123.456"}};
 
   const std::string yaml = R"EOF(
 name: match-header
@@ -415,7 +418,7 @@ present_match: true
 TEST(MatchHeadersTest, HeaderPresentInverseMatch) {
   TestRequestHeaderMapImpl unmatching_headers{{"match-header", "123"}};
   TestRequestHeaderMapImpl matching_headers{{"nonmatch-header", "1234"},
-                                     {"other-nonmatch-header", "123.456"}};
+                                            {"other-nonmatch-header", "123.456"}};
 
   const std::string yaml = R"EOF(
 name: match-header
