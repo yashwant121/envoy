@@ -173,7 +173,7 @@ public:
    */
   template <typename T> static T findByName(const std::vector<T>& v,absl::string_view name) {
     auto pos = std::find_if(v.begin(), v.end(),
-                            [name](const T& stat) -> bool { return stat->name() == name; });
+    [name](const T& stat) -> bool { return stat->name() == name;});
     if (pos == v.end()) {
       return nullptr;
     }

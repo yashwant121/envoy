@@ -964,7 +964,6 @@ TEST(BufferHelperTest, WriteBEI64) {
     EXPECT_EQ("\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF", buffer.toString());
   }
 }
-
 } // namespace
 } // namespace Buffer
 } // namespace Envoy
